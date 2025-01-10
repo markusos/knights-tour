@@ -21,9 +21,12 @@ uv run knight.py
 The script can be run from the command line with various options:
 
 ### Arguments
---size: Size of the board (a, b) (default: 8, 8)
---start: Knight's starting position (x, y) (default: 0, 0)
---visualize: Enable visualization of the knight's tour (optional)
+
+`--size`: Size of the board (a, b) (default: 8, 8)
+
+`--start`: Knight's starting position (x, y) (default: 0, 0)
+
+`--visualize`: Enable visualization of the knight's tour (optional)
 
 ### Examples
 Solve the Knight's Tour problem on an 8x8 board starting at position (0,0) without visualization:
