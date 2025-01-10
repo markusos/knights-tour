@@ -26,9 +26,17 @@ def main():
         action="store_true",
         help="Enable visualization of the knight's tour",
     )
+    parser.add_argument(
+        "-l",
+        "--loop",
+        action="store_true",
+        help="Enable findng a closed knight's tour",
+    )
 
     args = parser.parse_args()
-    KnightTourSolver(args.size, args.start, args.visualize).solve()
+    KnightTourSolver(
+        args.size, args.start, visualize=args.visualize, loop=args.loop
+    ).solve()
 
 
 if __name__ == "__main__":

@@ -7,5 +7,9 @@ __pypackages__/
 # Environments
 .venv
 
+# Cache
+.pytest_cache/
+.ruff_cache/
+
 # macOS
 .DS_Store
