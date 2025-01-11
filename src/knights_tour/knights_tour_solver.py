@@ -1,20 +1,46 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from typing import List, Tuple
 
 
-class KnightTourSolver:
+class KnightsTourSolver:
+    """
+    A class to solve the Knight's Tour problem using backtracking with Warnsdorff's rule.
+    """
+
     # Possible moves for a knight
-    MOVES = [(2, 1), (1, 2), (-1, 2), (-2, 1), (-2, -1), (-1, -2), (1, -2), (2, -1)]
+    MOVES: List[Tuple[int, int]] = [
+        (2, 1),
+        (1, 2),
+        (-1, 2),
+        (-2, 1),
+        (-2, -1),
+        (-1, -2),
+        (1, -2),
+        (2, -1),
+    ]
 
-    def __init__(self, size, start, visualize=False, loop=False):
-        self.A = size[0]
-        self.B = size[1]
+    def __init__(
+        self,
+        size: Tuple[int, int],
+        start: Tuple[int, int],
+        visualize: bool = False,
+        loop: bool = False,
+    ):
+        """
+        Initializes the KnightsTourSolver with the given board size, starting position, and options.
+
+        Args:
+            size (Tuple[int, int]): Size of the chessboard (rows, cols).
+            start (Tuple[int, int]): Starting position of the knight (x, y).
+            visualize (bool): Whether to visualize the knight's tour.
+            loop (bool): Whether to allow looping of the knight's tour.
+        """
+        self.rows, self.cols = size
+        self.start_x, self.start_y = start
 
         # Initialize the chessboard
-        self.board = [[-1 for _ in range(self.B)] for _ in range(self.A)]
-
-        self.start_x = start[0]
-        self.start_y = start[1]
+        self.board = np.full((self.rows, self.cols), -1, dtype=int)
 
         # Place the knight at the starting position
         self.board[self.start_x][self.start_y] = 0
@@ -26,11 +52,14 @@ class KnightTourSolver:
 
         self.fig, self.ax = plt.subplots() if self.visualize else (None, None)
 
-    def solve(self):
+    def solve(self) -> None:
+        """
+        Solves the Knight's Tour problem and prints the solution if found.
+        """
         plt.ion()  # Turn on interactive mode if visualization is enabled
 
-        if self.__solve_knight_tour(self.start_x, self.start_y, 1):
-            self.__print_board()
+        if self._solve_knight_tour(self.start_x, self.start_y, 1):
+            self._print_board()
         else:
             print("No solution found")
 
@@ -39,48 +68,61 @@ class KnightTourSolver:
             plt.ioff()
             plt.show()
 
-    def __is_valid_move(self, x, y, move_count):
-        return (0 <= x < self.A and 0 <= y < self.B and self.board[x][y] == -1) or (
+    def _is_valid_move(self, x: int, y: int, move_count: int) -> bool:
+        """
+        Checks if the move to the position (x, y) is valid.
+
+        Args:
+            x (int): X-coordinate of the move.
+            y (int): Y-coordinate of the move.
+            move_count (int): The current move count.
+
+        Returns:
+            bool: True if the move is valid, False otherwise.
+        """
+        return (
+            0 <= x < self.rows and 0 <= y < self.cols and self.board[x][y] == -1
+        ) or (
             self.loop
             and x == self.start_x
             and y == self.start_y
-            and move_count == self.__get_max_moves() - 1
+            and move_count == self._get_max_moves() - 1
         )
 
-    def __get_degree(self, x, y, move_count):
+    def _get_degree(self, x: int, y: int, move_count: int) -> int:
         count = 0
         for move in self.MOVES:
             next_x, next_y = x + move[0], y + move[1]
-            if self.__is_valid_move(next_x, next_y, move_count):
+            if self._is_valid_move(next_x, next_y, move_count):
                 count += 1
         return count
 
-    def __get_max_moves(self):
-        return self.A * self.B if not self.loop else self.A * self.B + 1
+    def _get_max_moves(self) -> int:
+        return self.rows * self.cols if not self.loop else self.rows * self.cols + 1
 
-    def __solve_knight_tour(self, x, y, move_count):
-        if move_count == self.__get_max_moves():
+    def _solve_knight_tour(self, x: int, y: int, move_count: int) -> bool:
+        if move_count == self._get_max_moves():
             return True
 
         # Sort moves based on Warnsdorff's rule
         next_moves = sorted(
             self.MOVES,
-            key=lambda move: self.__get_degree(x + move[0], y + move[1], move_count),
+            key=lambda move: self._get_degree(x + move[0], y + move[1], move_count),
         )
 
         for move in next_moves:
             next_x, next_y = x + move[0], y + move[1]
 
-            if self.__is_valid_move(next_x, next_y, move_count):
+            if self._is_valid_move(next_x, next_y, move_count):
                 self.board[next_x][next_y] = move_count
                 self.path_x.append(next_y + 0.5)
                 self.path_y.append(next_x + 0.5)
 
                 # Update the plot if visualization is enabled
                 if self.visualize:
-                    self.__plot_board()
+                    self._plot_board()
 
-                if self.__solve_knight_tour(next_x, next_y, move_count + 1):
+                if self._solve_knight_tour(next_x, next_y, move_count + 1):
                     return True
 
                 # Backtrack
@@ -90,26 +132,26 @@ class KnightTourSolver:
 
                 # Update the plot if visualization is enabled
                 if self.visualize:
-                    self.__plot_board()
+                    self._plot_board()
 
         return False
 
-    def __print_board(self):
+    def _print_board(self) -> None:
         for row in self.board:
             print(" ".join(str(cell).rjust(2, "0") for cell in row))
         print()
 
-    def __plot_board(self):
+    def _plot_board(self) -> None:
         self.ax.clear()
-        self.ax.set_xticks(np.arange(self.B))
-        self.ax.set_yticks(np.arange(self.A))
+        self.ax.set_xticks(np.arange(self.cols))
+        self.ax.set_yticks(np.arange(self.rows))
         self.ax.set_xticklabels([])
         self.ax.set_yticklabels([])
         self.ax.grid(True)
 
         # Create a checkerboard pattern
-        for i in range(self.A):
-            for j in range(self.B):
+        for i in range(self.rows):
+            for j in range(self.cols):
                 color = "white" if (i + j) % 2 == 0 else "gray"
                 self.ax.add_patch(
                     plt.Rectangle(
@@ -132,7 +174,7 @@ class KnightTourSolver:
             self.ax.plot(
                 self.path_x[i : i + 2],
                 self.path_y[i : i + 2],
-                color=plt.cm.coolwarm(i / (self.A * self.B - 1)),
+                color=plt.cm.coolwarm(i / (self.rows * self.cols - 1)),
                 marker="o",
             )
 

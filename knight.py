@@ -1,5 +1,5 @@
 import argparse
-from src.tour.solver import KnightTourSolver
+from src.knights_tour.knights_tour_solver import KnightsTourSolver
 
 
 def main():
@@ -34,7 +34,7 @@ def main():
     )
 
     args = parser.parse_args()
-    KnightTourSolver(
+    KnightsTourSolver(
         args.size, args.start, visualize=args.visualize, loop=args.loop
     ).solve()
 
