@@ -9,8 +9,8 @@ def main():
         type=int,
         nargs=2,
         default=(8, 8),
-        metavar=("a", "b"),
-        help="Size of the board (a, b), (default: 8, 8)",
+        metavar=("rows", "cols"),
+        help="Size of the board (rows, cols), (default: 8, 8)",
     )
     parser.add_argument(
         "--start",
