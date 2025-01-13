@@ -85,6 +85,13 @@ class KnightsTourSolver:
         )
 
     def _get_degree(self, position: Position[int, int], move_count: int) -> int:
+        """
+        Returns the degree of the given position based on Warnsdorff's rule.
+
+        Args:
+            position (Position[int, int]): Position to calculate the degree for.
+            move_count (int): The current move count.
+        """
         count = 0
         for move in self.MOVES:
             next_position = self._get_next_position(position, move)
@@ -93,6 +100,9 @@ class KnightsTourSolver:
         return count
 
     def _get_max_moves(self) -> int:
+        """
+        Returns the maximum number of moves for the knight's tour.
+        """
         return (
             self.size.rows * self.size.cols
             if not self.loop
@@ -100,9 +110,19 @@ class KnightsTourSolver:
         )
 
     def _get_next_position(self, position: Position[int, int], move: Move[int, int]):
+        """
+        Returns the next position after applying the given move.
+        """
         return Position(position.x + move.dx, position.y + move.dy)
 
     def _solve_knight_tour(self, position: Position[int, int], move_count: int) -> bool:
+        """
+        Recursively solves the Knight's Tour problem using backtracking.
+
+        Args:
+            position (Position[int, int]): Current position of the knight.
+            move_count (int): Current move count.
+        """
         if move_count == self._get_max_moves():
             return True
 
@@ -129,9 +149,5 @@ class KnightsTourSolver:
 
                 # Backtrack
                 self.board.unset(next_position)
-
-                # Update the plot if visualization is enabled
-                if self.visualize:
-                    self.board.plot_board()
 
         return False
