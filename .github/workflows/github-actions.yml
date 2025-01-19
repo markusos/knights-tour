@@ -1,0 +1,26 @@
+name: GitHub Actions
+run-name: GitHub Actions Testing 🚀
+on: [push]
+jobs:
+  test-knights-tour:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+        
+      - name: Install the project
+        run: uv sync --all-extras --dev
+
+      - name: Run tests
+        run: uv run pytest tests
+
+      - name: Run ruff linter
+        run: uv run ruff check
+
+      - name: Run ruff format check
+        run: uv run ruff format --check
