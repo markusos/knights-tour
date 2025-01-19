@@ -1,17 +1,28 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import List
-from collections import namedtuple
+from matplotlib.pyplot import Figure, Axes
+from typing import List, Optional, NamedTuple
 
-BoardSize = namedtuple("BoardSize", ["rows", "cols"])
-Position = namedtuple("Position", ["x", "y"])
-Move = namedtuple("Move", ["dx", "dy"])
+
+class BoardSize(NamedTuple):
+    rows: int
+    cols: int
+
+
+class Position(NamedTuple):
+    x: int
+    y: int
+
+
+class Move(NamedTuple):
+    dx: int
+    dy: int
 
 
 class Board:
     def __init__(
         self,
-        size: BoardSize[int, int],
+        size: BoardSize,
         visualize: bool = False,
     ):
         """
@@ -26,15 +37,15 @@ class Board:
 
         # Initialize the chessboard
         self.board = np.full((self.size.rows, self.size.cols), -1, dtype=int)
-        self.path = []
+        self.path: List[Position] = []
+        self.fig: Optional[Figure] = None
+        self.ax: Optional[Axes] = None
 
         if self.visualize:
             self.fig, self.ax = plt.subplots()
             plt.ion()
-        else:
-            self.fig, self.ax = None, None
 
-    def set(self, pos: Position[int, int], value: int) -> None:
+    def set(self, pos: Position, value: int) -> None:
         """
         Sets the value of the cell at the given position.
 
@@ -45,7 +56,7 @@ class Board:
         self.board[pos.x][pos.y] = value
         self.path.append(pos)
 
-    def unset(self, pos: Position[int, int]) -> None:
+    def unset(self, pos: Position) -> None:
         """
         Unsets the value of the cell at the given position.
 
@@ -55,7 +66,7 @@ class Board:
         self.board[pos.x][pos.y] = -1
         self.path.pop()
 
-    def get(self, pos: Position[int, int]) -> int:
+    def get(self, pos: Position) -> int:
         """
         Gets the value of the cell at the given position.
 
@@ -68,20 +79,25 @@ class Board:
         return self.board[pos.x][pos.y]
 
     def rows(self) -> List:
-        return self.board
+        return self.board.tolist()
 
     def print_board(self) -> None:
         """
         Prints the board state.
         """
+        max_num = self.size.rows * self.size.cols - 1
+        width = len(str(max_num))
         for row in self.board:
-            print(" ".join(str(cell).rjust(2, "0") for cell in row))
+            print(" ".join(str(cell).rjust(width, "0") for cell in row))
         print()
 
     def plot_board(self) -> None:
         """
         Plots the board state using matplotlib.
         """
+        if self.ax is None:
+            raise RuntimeError("Must set `visualize` true before running plot board!")
+
         self.ax.clear()
         self.ax.set_xticks(np.arange(self.size.cols))
         self.ax.set_yticks(np.arange(self.size.rows))
@@ -115,10 +131,12 @@ class Board:
             x1, y1 = self.path[i]
             x2, y2 = self.path[i + 1]
 
+            color = plt.cm.coolwarm(i / (self.size.rows * self.size.cols - 1))  # type: ignore[attr-defined]
+
             self.ax.plot(
                 [y1 + 0.5, y2 + 0.5],
                 [x1 + 0.5, x2 + 0.5],
-                color=plt.cm.coolwarm(i / (self.size.rows * self.size.cols - 1)),
+                color=color,
                 marker="o",
             )
 

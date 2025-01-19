@@ -1,5 +1,5 @@
-name: GitHub Actions
-run-name: GitHub Actions Testing 🚀
+name: Tests
+run-name: Knights Tour Tests 🚀
 on: [push]
 jobs:
   test-knights-tour:
@@ -25,3 +25,6 @@ jobs:
 
       - name: Run ruff format check
         run: uv run ruff format --check
+
+      - name: Run mypy typecheck
+        run: uv run mypy knight.py

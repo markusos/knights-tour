@@ -9,7 +9,7 @@ class KnightsTourSolver:
     """
 
     # Possible moves for a knight
-    MOVES: List[Move[int, int]] = [
+    MOVES: List[Move] = [
         Move(dx, dy)
         for dx, dy in [
             (2, 1),
@@ -25,8 +25,8 @@ class KnightsTourSolver:
 
     def __init__(
         self,
-        size: Tuple[int, int],
-        start: Tuple[int, int],
+        size: Tuple,
+        start: Tuple,
         visualize: bool = False,
         loop: bool = False,
     ):
@@ -63,7 +63,7 @@ class KnightsTourSolver:
 
         self.board.close()
 
-    def _is_valid_move(self, position: Position[int, int], move_count: int) -> bool:
+    def _is_valid_move(self, position: Position, move_count: int) -> bool:
         """
         Checks if the move to the position (x, y) is valid.
 
@@ -84,7 +84,7 @@ class KnightsTourSolver:
             and move_count == self._get_max_moves() - 1
         )
 
-    def _get_degree(self, position: Position[int, int], move_count: int) -> int:
+    def _get_degree(self, position: Position, move_count: int) -> int:
         """
         Returns the degree of the given position based on Warnsdorff's rule.
 
@@ -109,13 +109,13 @@ class KnightsTourSolver:
             else self.size.rows * self.size.cols + 1
         )
 
-    def _get_next_position(self, position: Position[int, int], move: Move[int, int]):
+    def _get_next_position(self, position: Position, move: Move):
         """
         Returns the next position after applying the given move.
         """
         return Position(position.x + move.dx, position.y + move.dy)
 
-    def _solve_knight_tour(self, position: Position[int, int], move_count: int) -> bool:
+    def _solve_knight_tour(self, position: Position, move_count: int) -> bool:
         """
         Recursively solves the Knight's Tour problem using backtracking.
 
