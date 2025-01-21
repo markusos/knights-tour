@@ -1,6 +1,7 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from src.knights_tour.board import Board, Position, Move, BoardSize
+from src.knights_tour.board_visualizer import BoardVisualizer
 
 
 class KnightsTourSolver:
@@ -36,118 +37,128 @@ class KnightsTourSolver:
         Args:
             size (Tuple[int, int]): Size of the chessboard (rows, cols).
             start (Tuple[int, int]): Starting position of the knight (x, y).
-            visualize (bool): Whether to visualize the knight's tour.
+            visualize (bool): Whether to visualize the knight's tour live.
             loop (bool): Whether to allow looping of the knight's tour.
         """
-        self.start = Position(*start)
         self.size = BoardSize(*size)
-
-        self.board = Board(self.size, visualize=visualize)
-
-        # Place the knight at the starting position
-        self.board.set(self.start, 0)
-        self.path = [self.start]
-
-        self.visualize = visualize
-
+        self.start = Position(*start)
+        self.visualizer = BoardVisualizer(visualize)
         self.loop = loop
+
+        # Create board state with knight at starting position
+        board = Board(self.size)
+        board.set(self.start)
+
+        # Initialize stack with starting board state
+        self.stack = [board]
 
     def solve(self) -> None:
         """
         Solves the Knight's Tour problem and prints the solution if found.
         """
-        if self._solve_knight_tour(self.start, 1):
-            self.board.print_board()
+        solved_board = self._solve_knight_tour()
+        if solved_board:
+            self.visualizer.print_board(solved_board)
         else:
             print("No solution found")
 
-        self.board.close()
+        self.visualizer.close()
 
-    def _is_valid_move(self, position: Position, move_count: int) -> bool:
+    def _solve_knight_tour(self) -> Optional[Board]:
+        """
+        Solves the Knight's Tour problem using backtracking.
+
+        Returns:
+            Optional[Board]: The solution board if found, None otherwise.
+        """
+        while self.stack:
+            board = self.stack.pop()
+
+            # Update the plot if visualization is enabled
+            self.visualizer.plot_board(board)
+
+            # Solution found if board max moves reached
+            if board.move_count == self._get_max_moves(board):
+                return board
+
+            # Sort possible moves based on Warnsdorff's rule
+            next_moves = sorted(
+                self.MOVES,
+                key=lambda move: self._get_degree(
+                    self._get_next_position(board.current_position(), move), board
+                ),
+            )
+
+            # Reverse the moves to prioritize moves with lower degree at the top of the stack
+            next_moves.reverse()
+
+            # Add all valid next moves to the stack
+            for move in next_moves:
+                next_position = self._get_next_position(board.current_position(), move)
+
+                if self._is_valid_move(next_position, board):
+                    # Create new board state for stack
+                    new_board = board.copy()
+                    new_board.set(next_position)
+                    self.stack.append((new_board))
+
+        # No solution found
+        return None
+
+    def _is_valid_move(self, position: Position, board: Board) -> bool:
         """
         Checks if the move to the position (x, y) is valid.
 
         Args:
             position: Position[int, int]: (x, y) coordinate of the next position.
-            move_count (int): The current move count.
+            board Board: The current state of the board.
 
         Returns:
             bool: True if the move is valid, False otherwise.
         """
-        return (
-            0 <= position.x < self.size.rows
-            and 0 <= position.y < self.size.cols
-            and self.board.get(position) == -1
-        ) or (
+        return (board.is_valid_position(position) and board.get(position) == -1) or (
             self.loop
             and position == self.start
-            and move_count == self._get_max_moves() - 1
+            and board.move_count == self._get_max_moves(board) - 1
         )
 
-    def _get_degree(self, position: Position, move_count: int) -> int:
+    def _get_degree(self, position: Position, board: Board) -> int:
         """
-        Returns the degree of the given position based on Warnsdorff's rule.
+        Returns the degree of the given new Position based on Warnsdorff's rule.
 
         Args:
             position (Position[int, int]): Position to calculate the degree for.
-            move_count (int): The current move count.
+            board (Board): The current board state.
         """
         count = 0
         for move in self.MOVES:
             next_position = self._get_next_position(position, move)
-            if self._is_valid_move(next_position, move_count):
+            if self._is_valid_move(next_position, board):
                 count += 1
         return count
 
-    def _get_max_moves(self) -> int:
-        """
-        Returns the maximum number of moves for the knight's tour.
-        """
-        return (
-            self.size.rows * self.size.cols
-            if not self.loop
-            else self.size.rows * self.size.cols + 1
-        )
-
-    def _get_next_position(self, position: Position, move: Move):
+    def _get_next_position(self, position: Position, move: Move) -> Position:
         """
         Returns the next position after applying the given move.
+
+        Args:
+            position (Position): Current position.
+            move (Move): Move to apply to the position.
+
+        Returns:
+            Position: The next position after applying the move.
         """
         return Position(position.x + move.dx, position.y + move.dy)
 
-    def _solve_knight_tour(self, position: Position, move_count: int) -> bool:
+    def _get_max_moves(self, board: Board) -> int:
         """
-        Recursively solves the Knight's Tour problem using backtracking.
+        Returns the maximum number of moves for the knight's tour.
 
         Args:
-            position (Position[int, int]): Current position of the knight.
-            move_count (int): Current move count.
+            board (Board): The current board state.
         """
-        if move_count == self._get_max_moves():
-            return True
-
-        # Sort moves based on Warnsdorff's rule
-        next_moves = sorted(
-            self.MOVES,
-            key=lambda move: self._get_degree(
-                self._get_next_position(position, move), move_count
-            ),
+        return (
+            board.size.rows * board.size.cols
+            if not self.loop
+            else board.size.rows * board.size.cols + 1
         )
-
-        for move in next_moves:
-            next_position = self._get_next_position(position, move)
-
-            if self._is_valid_move(next_position, move_count):
-                self.board.set(next_position, move_count)
-
-                # Update the plot if visualization is enabled
-                if self.visualize:
-                    self.board.plot_board()
-
-                if self._solve_knight_tour(next_position, move_count + 1):
-                    return True
-
-                # Backtrack
-                self.board.unset(next_position)
-
-        return False

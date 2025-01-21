@@ -1,44 +1,56 @@
 import numpy as np
 
 from src.knights_tour.knights_tour_solver import KnightsTourSolver
-from src.knights_tour.board import Position
+from src.knights_tour.board import Board, Position, BoardSize, Move
 
 
 def test_knights_tour_solve_knight_tour():
     size = (5, 5)
     start = (2, 2)
     solver = KnightsTourSolver(size, start)
-    solver.solve()
+    board = solver._solve_knight_tour()
 
     # Start position is still set to 0
-    assert solver.board.get(Position(*start)) == 0
+    assert board.get(Position(*start)) == 0
     # Board is filled with moves
-    assert all(cell != -1 for row in solver.board.rows() for cell in row)
+    assert all(cell != -1 for row in board.rows() for cell in row)
+
+    # Assert expeceted board state
+    expected = np.array(
+        [
+            [22, 9, 14, 3, 24],
+            [15, 4, 23, 8, 13],
+            [10, 21, 0, 17, 2],
+            [5, 16, 19, 12, 7],
+            [20, 11, 6, 1, 18],
+        ]
+    )
+
+    actual = np.array([row for row in board.rows()])
+    np.testing.assert_array_equal(actual, expected)
 
 
 def test_knights_tour_no_solution():
     size = (4, 4)
     start = (0, 0)
     solver = KnightsTourSolver(size, start)
-    solver.solve()
+    board = solver._solve_knight_tour()
 
-    # Start position is still set to 0
-    assert solver.board.get(Position(*start)) == 0
-    # Board has at least one incompleated position
-    assert any(cell == -1 for row in solver.board.rows() for cell in row)
+    # No solution was found
+    assert board is None
 
 
 def test_knights_tour_solve_knight_tour_with_loop():
     size = (8, 8)
     start = (4, 4)
     solver = KnightsTourSolver(size, start, loop=True)
-    solver.solve()
+    board = solver._solve_knight_tour()
 
     # Last move is back to start
-    assert solver.board.get(Position(*start)) == 64
+    assert board.get(Position(*start)) == 64
 
     # Board is filled with moves
-    assert all(cell != -1 for row in solver.board.rows() for cell in row)
+    assert all(cell != -1 for row in board.rows() for cell in row)
 
     # Assert expeceted board state
     expected = np.array(
@@ -54,6 +66,22 @@ def test_knights_tour_solve_knight_tour_with_loop():
         ]
     )
 
-    actual = np.array([row for row in solver.board.rows()])
-
+    actual = np.array([row for row in board.rows()])
     np.testing.assert_array_equal(actual, expected)
+
+
+def test_knights_tour_degree():
+    size = BoardSize(5, 5)
+    start = Position(1, 2)
+    move = Move(dx=-1, dy=2)
+
+    solver = KnightsTourSolver(size, start)
+
+    board = Board(size)
+    board.set(start)
+
+    new_position = solver._get_next_position(start, move)
+    assert new_position == Position(0, 4)
+
+    position_degree = solver._get_degree(new_position, board)
+    assert position_degree == 1

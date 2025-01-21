@@ -11,13 +11,20 @@ def test_board():
     assert board.size.cols == 4
 
     # Test set
-    board.set(pos, 5)
+    board.set(pos)
 
-    assert board.get(pos) == 5
+    assert board.get(pos) == 0
     assert pos in board.path
+    assert board.current_position() == pos
 
-    # Test unset
-    board.unset(pos)
+    # Test copy
+    board_copy = board.copy()
 
-    assert board.get(pos) == -1
-    assert pos not in board.path
+    assert board_copy.size.rows == 5
+    assert board_copy.size.cols == 4
+    assert board_copy.get(pos) == 0
+
+    board_copy.set(Position(1, 1))
+    assert board.get(Position(1, 1)) == -1
+    assert board_copy.get(Position(1, 1)) == 1
+    assert board_copy.current_position() == Position(1, 1)
